@@ -1,67 +1,92 @@
 package gens.global.gensquickcount;
 
-import androidx.appcompat.app.AlertDialog;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.net.Uri;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.provider.Settings;
-import android.widget.Toast;
+import android.Manifest;
+import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Looper;
 
-import gens.global.gensquickcount.function.Lokasi;
-import gens.global.gensquickcount.function.PermissionCallback;
+import gens.global.gensquickcount.function.MySession;
 
-public class MainActivity extends AppCompatActivity implements PermissionCallback {
-    Lokasi lokasi;
+public class MainActivity extends AppCompatActivity {
+    private static final int CAMERA_PERMISSION_REQUEST_CODE = 100;
+    private static final int STORAGE_PERMISSION_REQUEST_CODE = 102;
+    private static final int READ_STORAGE_PERMISSION_REQUEST_CODE = 100;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 104;
+    private static final int CORE_LOCATION_PERMISSION_REQUEST_CODE = 105;
+    final int TIMEOUT_DURATION = 3000;
+    Handler handler;
+    Runnable runnable;
+    MySession mySession;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        lokasi = new Lokasi(this,this);
-        lokasi.requestLocationPermission();
+        mySession = new MySession(this);
+        checkAndRequestPermissions();
     }
-    @Override
-    public void onPermissionGranted() {
-        lokasi.requestLocationUpdates();
+    public void cekSession() {
+        handler = new Handler(Looper.getMainLooper());
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                mySession.checkLogin();
+            }
+        };
     }
-    @Override
-    public void onPermissionDenied() {
-        // Izin ditolak, berikan pesan kepada pengguna
-        Toast.makeText(this, "Izin lokasi ditolak. Aplikasi tidak dapat berfungsi dengan baik tanpa izin lokasi.", Toast.LENGTH_SHORT).show();
+    private void checkAndRequestPermissions() {
+        String[] permissions = {
+                android.Manifest.permission.CAMERA,
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                android.Manifest.permission.ACCESS_WIFI_STATE,
+                android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                android.Manifest.permission.ACCESS_FINE_LOCATION,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION
+        };
 
-        // Tampilkan dialog atau snackbar dengan pesan lebih detail atau tautan ke pengaturan
-        showPermissionDeniedDialog();
-    }
-    private void showPermissionDeniedDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Izin Lokasi Dibutuhkan");
-        builder.setMessage("Aplikasi memerlukan izin lokasi untuk berfungsi dengan baik. Buka pengaturan aplikasi untuk memberikan izin?");
-        builder.setPositiveButton("Buka Pengaturan", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                openAppSettings();
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, permissions, getPermissionRequestCode(permission));
+                return;
             }
-        });
-        builder.setNegativeButton("Tutup", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-        builder.show();
+        }
     }
-    private void openAppSettings() {
-        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-        Uri uri = Uri.fromParts("package", getPackageName(), null);
-        intent.setData(uri);
-        startActivity(intent);
+    private int getPermissionRequestCode(String permission) {
+        switch (permission) {
+            case android.Manifest.permission.CAMERA:
+                return CAMERA_PERMISSION_REQUEST_CODE;
+            case android.Manifest.permission.WRITE_EXTERNAL_STORAGE:
+                return STORAGE_PERMISSION_REQUEST_CODE;
+            case android.Manifest.permission.READ_EXTERNAL_STORAGE:
+                return READ_STORAGE_PERMISSION_REQUEST_CODE;
+            case android.Manifest.permission.ACCESS_FINE_LOCATION:
+                return LOCATION_PERMISSION_REQUEST_CODE;
+            case Manifest.permission.ACCESS_COARSE_LOCATION:
+                return CORE_LOCATION_PERMISSION_REQUEST_CODE;
+            default:
+                return -1; // Unknown permission
+        }
     }
-    
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        lokasi.stopLocationUpdates();
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE || requestCode == STORAGE_PERMISSION_REQUEST_CODE) {
+            for (int i = 0; i < permissions.length; i++) {
+                if (grantResults[i] == PackageManager.PERMISSION_GRANTED) {
+                    cekSession();
+                    handler.postDelayed(runnable, TIMEOUT_DURATION);
+                }else{
+                    cekSession();
+                    handler.postDelayed(runnable, TIMEOUT_DURATION);
+                }
+            }
+        }
     }
+
 }

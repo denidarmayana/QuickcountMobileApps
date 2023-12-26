@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Gen\'s Quick Count</string>
+    <string name="welcome">Selamat Datang</string>
+    <string name="desc_auth">Akurasikan dan percepatan perhitungan suara calon pejabat Negara dengan menggunakan teknologi berbasis mobile Apps</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
