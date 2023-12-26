@@ -1,4 +1,4 @@
-package gens.global.gensquickcount.fubction;
+package gens.global.gensquickcount.function;
 
 
 import android.content.Context;
@@ -6,7 +6,6 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -17,13 +16,22 @@ import android.Manifest;
 
 public class Lokasi {
     private static final int REQUEST_LOCATION_PERMISSION = 1;
-    private Context context;
-    private LocationManager locationManager;
-    private LocationListener locationListener;
-    public Lokasi(Context context){
+    Context context;
+    LocationManager locationManager;
+    LocationListener locationListener;
+    PermissionCallback permissionCallback;
+    public Lokasi(Context context,PermissionCallback callback){
         this.context = context;
+        this.permissionCallback = callback;
         locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
         locationListener = new MyLocationListener();
+    }
+    public void requestLocationPermission() {
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            permissionCallback.onPermissionGranted();
+        } else {
+            ActivityCompat.requestPermissions((AppCompatActivity) context, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION_PERMISSION);
+        }
     }
     public void startLocationUpdates() {
         // Cek izin lokasi
@@ -36,7 +44,7 @@ public class Lokasi {
         }
     }
 
-    private void requestLocationUpdates() {
+    public void requestLocationUpdates() {
         // Tentukan kriteria untuk pembaruan lokasi
         String provider = LocationManager.GPS_PROVIDER;
         long minTime = 1000; // dalam milidetik
