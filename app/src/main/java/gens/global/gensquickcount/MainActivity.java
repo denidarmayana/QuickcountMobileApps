@@ -20,7 +20,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int READ_STORAGE_PERMISSION_REQUEST_CODE = 100;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 104;
     private static final int CORE_LOCATION_PERMISSION_REQUEST_CODE = 105;
-    final int TIMEOUT_DURATION = 3000;
+    final int TIMEOUT_DURATION = 2000;
     Handler handler;
     Runnable runnable;
     MySession mySession;

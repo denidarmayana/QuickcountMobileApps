@@ -196,7 +196,12 @@ public class MyLocation extends Service implements LocationListener {
 
         if (addresses != null && addresses.size() > 0) {
             Address address = addresses.get(0);
-            String addressLine = address.getAddressLine(0);
+            String kabupaten = address.getSubAdminArea();
+            String locality = address.getLocality();
+            String prov = address.getAdminArea();
+            String countryName = address.getCountryName();
+            String postalCode = address.getPostalCode();
+            String addressLine = locality+", "+kabupaten+", "+prov+", "+countryName+", "+postalCode;
 
             return addressLine;
         } else {
